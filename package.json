@@ -1,0 +1,31 @@
+{
+  "name": "loggy-log",
+  "version": "1.0.0",
+  "description": "A little logger witch depend on ",
+  "main": "app/log.js",
+  "author": "Alexandre CONTASSOT <alexandre.contassot@thechatbotfactory.com>",
+  "license": "MIT",
+  "scripts": {
+    "code-style": "xo"
+  },
+  "dependencies": {
+    "chalk": "^2.4.2",
+    "moment": "^2.24.0",
+    "ramda": "^0.26.1",
+    "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "pre-commit": "^1.2.2",
+    "xo": "^0.24.0"
+  },
+  "xo": {
+    "envs": [
+      "mocha"
+    ],
+    "space": 2,
+    "prettier": true
+  },
+  "pre-commit": [
+    "code-style"
+  ]
+}
