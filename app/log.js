@@ -24,7 +24,7 @@ const isLevelOk = R.curry((level, process) =>
  * @param message A log message
  */
 const log = R.curry((level, message) =>
-  R.tap(
+  R.tap(() =>
     R.when(isLevelOk(level), () => winstonLogger.log(level, message))(process)
   )
 );

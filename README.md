@@ -55,10 +55,10 @@ const {info, trace} = require('loggy-log');
 
 const process = R.pipe(
   R.add(5),
-  R.always(trace('add call')),
+  trace('add call'),
   R.multiply(4),
-  x => trace(`multiply call ${x}`),
-  R.always(info('process done'))
+  trace(`multiply call`),
+  info('process done')
 );
 
 process(2);
