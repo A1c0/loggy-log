@@ -24,7 +24,8 @@ To do this, simply create a file `.env` and instantiate the variable `LOG_LEVEL`
 ```
 LOG_LEVEL=INFO
 ```
-By setting the level to INFO, you allow the logs of INFO and those above, i. e. WARN and ERROR
+
+By setting the level to `INFO`, you allow the logs of `INFO` and those above, i. e. `WARN` and `ERROR`
 
 ### Call log function
 
@@ -41,6 +42,26 @@ info('this is a log message');
 debug('this is a log message');
 trace('this is a log message');
 // =>  with previous config, this script omit 'debug' and 'trace' functions
+```
+
+#### For functional use
+
+The logs functions are tap so can be use in pipe. there is an exemple with [ramda](https://ramdajs.com/):
+
+```js
+const R = require('ramda');
+
+const {error, log, info, debug, trace, warn} = require('loggy-log');
+
+const process = R.pipe(
+  R.add(5),
+  R.tap(R.always(trace('add call'))),
+  R.multiply(4),
+  R.tap(x => trace(`multiply call ${x}`)),
+  R.tap(R.always(info('process done')))
+);
+
+process(2);
 ```
 
 
