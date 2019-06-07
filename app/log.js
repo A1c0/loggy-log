@@ -18,45 +18,40 @@ const isLevelOk = R.curry((level, process) =>
   R.pathSatisfies(isBeforeThan(level), ['env', 'LOG_LEVEL'])(process)
 );
 
-/**
- * Print a log message
- * @param level The level of the log
- * @param message A log message
- */
-const log = R.curry((level, message) =>
+const logIfLevelOK = (level, message) =>
   R.tap(() =>
     R.when(isLevelOk(level), () => winstonLogger.log(level, message))(process)
-  )
+  );
+
+const log = R.curry((level, message) => logIfLevelOK(level, message)(message));
+
+const logTapMessage = R.curry((level, message, obj) =>
+  logIfLevelOK(level, message)(obj)
 );
 
-/**
- * Print a trace log message
- * @param {String} message A log message
- */
 const trace = log('trace');
-
-/**
- * Print a trace log message
- * @param {String} message A log message
- */
 const debug = log('debug');
-
-/**
- * Print a trace log message
- * @param {String} message A log message
- */
 const info = log('info');
-
-/**
- * Print a trace log message
- * @param {String} message A log message
- */
 const warn = log('warn');
-
-/**
- * Print a trace log message
- * @param {String} message A log message
- */
 const error = log('error');
 
-module.exports = {trace, debug, info, warn, error, log};
+const traceTapMessage = logTapMessage('trace');
+const debugTapMessage = logTapMessage('debug');
+const infoTapMessage = logTapMessage('info');
+const warnTapMessage = logTapMessage('warn');
+const errorTapMessage = logTapMessage('error');
+
+module.exports = {
+  trace,
+  debug,
+  info,
+  warn,
+  error,
+  log,
+  logTapMessage,
+  traceTapMessage,
+  debugTapMessage,
+  infoTapMessage,
+  warnTapMessage,
+  errorTapMessage
+};

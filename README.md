@@ -51,14 +51,17 @@ The logs functions are tap so can be use in pipe. there is an exemple with [ramd
 ```js
 const R = require('ramda');
 
-const {info, trace} = require('loggy-log');
+const {info, trace, traceTapMessage, infoTapMessage} = require('loggy-log');
 
 const process = R.pipe(
   R.add(5),
-  trace('add call'),
+  traceTapMessage('add call'),
+  trace,
   R.multiply(4),
-  trace(`multiply call`),
-  info('process done')
+  traceTapMessage(`multiply call`),
+  trace,
+  infoTapMessage('process done'),
+  info
 );
 
 process(2);
