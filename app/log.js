@@ -1,8 +1,11 @@
 const R = require('ramda');
-
 const {winstonLogger} = require('../lib/winston-logger');
 
 const levelTable = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'];
+
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'INFO';
+
+const ezLog = R.curry((m, l) => winstonLogger.log(l, '%o', m));
 
 const isBeforeThan = R.curry((level, x) =>
   R.pipe(
@@ -14,19 +17,21 @@ const isBeforeThan = R.curry((level, x) =>
   )(level)
 );
 
-const isLevelOk = R.curry((level, process) =>
-  R.pathSatisfies(isBeforeThan(level), ['env', 'LOG_LEVEL'])(process)
-);
+const isLevelOk = R.converge(isBeforeThan, [
+  R.identity,
+  R.always(process.env.LOG_LEVEL)
+]);
 
-const logIfLevelOK = (level, message) =>
-  R.tap(() =>
-    R.when(isLevelOk(level), () => winstonLogger.log(level, message))(process)
-  );
+const logIfLevelOK = (level, message, obj) =>
+  R.pipe(
+    R.when(isLevelOk, ezLog(message)),
+    R.always(obj)
+  )(level);
 
-const log = R.curry((level, message) => logIfLevelOK(level, message)(message));
+const log = R.curry((level, message) => logIfLevelOK(level, message, message));
 
-const logTapMessage = R.curry((level, message, obj) =>
-  logIfLevelOK(level, message)(obj)
+const logT = R.curry((level, message, obj) =>
+  logIfLevelOK(level, message, obj)
 );
 
 const trace = log('trace');
@@ -35,23 +40,23 @@ const info = log('info');
 const warn = log('warn');
 const error = log('error');
 
-const traceTapMessage = logTapMessage('trace');
-const debugTapMessage = logTapMessage('debug');
-const infoTapMessage = logTapMessage('info');
-const warnTapMessage = logTapMessage('warn');
-const errorTapMessage = logTapMessage('error');
+const traceT = logT('trace');
+const debugT = logT('debug');
+const infoT = logT('info');
+const warnT = logT('warn');
+const errorT = logT('error');
 
 module.exports = {
+  log,
   trace,
   debug,
   info,
   warn,
   error,
-  log,
-  logTapMessage,
-  traceTapMessage,
-  debugTapMessage,
-  infoTapMessage,
-  warnTapMessage,
-  errorTapMessage
+  logT,
+  traceT,
+  debugT,
+  infoT,
+  warnT,
+  errorT
 };
