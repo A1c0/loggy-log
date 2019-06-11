@@ -67,4 +67,20 @@ const process = R.pipe(
 process(2);
 ```
 
+### Exposed functions
 
+##### `error, warn, info, debug, trace`
+
+`a -> a -> a`
+
+Takes a, logs it, and returns a 
+
+##### `errorT, warnT, infoT, debugT, traceT`
+
+`a -> * -> *`
+
+Takes a String and any data, logs the String and return the data
+
+##### Note about  `log` and `logT`
+
+Got the same methods as before, but take another argument, placed first, which is the log level.
