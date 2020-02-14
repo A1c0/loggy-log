@@ -3,7 +3,7 @@
 [![npm version](https://badge.fury.io/js/loggy-log.svg)](https://badge.fury.io/js/loggy-log)
 [![npmVersion](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/xojs/xo) 
 
-Loggy-Log is a utility to easily integrate logs into your application. It will display more or less log depending on the level chosen.
+Loggy-log makes it easy to create logs in pipes (like in [ramda](https://ramdajs.com/)) based on a [pino](https://www.npmjs.com/package/pino) logger (formatted with [pino-pretty](https://www.npmjs.com/package/pino-pretty)) 
 
 ## Install
 
@@ -17,54 +17,91 @@ $ npm install loggy-log
 
 ## Usage
 
-### Set environement variable
+### Set offset of logs level
 
-To do this, simply create a file `.env` and instantiate the variable `LOG_LEVEL` to the desired value. The values supported are `TRACE`, `DEBUG`, `INFO`, `WARN` and `ERROR`.
+The values supported are `trace`, `debug`, `info`, `warn` and `error`.
 
 ```
-LOG_LEVEL=INFO
+PINO_LEVEL=info
 ```
 
-By setting the level to `INFO`, you allow the logs of `INFO` and those above, i. e. `WARN` and `ERROR`
+you can do it easily with [dotenv](https://www.npmjs.com/package/dotenv)
 
-### Call log function
+By setting the level to `info`, you allow the logs of `info` and those above, i. e. `warn` and `error`
+
+The default value is `trace`
+
+### Set logger title
+
+You can set your log title when require `loggy-log` module
+```js
+// test.js
+const L = require('loggy-log')("Log Demo");
+L.info('Initial message : %s')('hello world');
+```
+
+it will produce as result
+```
+[2020-02-22 13:13:42.196 +0000] INFO  (Log Demo): Initial message : hello world
+```
+
+But if you don't set a title, the default title is your filename:
 
 ```js
-const {error, log, info, debug, trace, warn} = require('loggy-log');
-
-log('error', 'this is a log message');
-
-// same call
-error('this is a log message');
-
-warn('this is a log message');
-info('this is a log message');
-debug('this is a log message');
-trace('this is a log message');
-// =>  with previous config, this script omit 'debug' and 'trace' functions
+// test.js
+const L = require('loggy-log')();
+L.info('Initial message : %s')('hello world');
 ```
 
-#### For functional use
+it will produce as result
+```
+[2020-02-22 13:13:42.196 +0000] INFO  (test): Initial message : hello world
+```
 
-The logs functions are tap so can be use in pipe. there is an exemple with [ramda](https://ramdajs.com/):
+
+### Utilisation
+
+The logs functions are tap so can be use in pipe. there is an example with [ramda](https://ramdajs.com/):
 
 ```js
 const R = require('ramda');
-const L = require('loggy-log');
+const L = require('loggy-log')();
 
 const main = R.pipe(
+  L.info('Processing start'),
+  L.debug('Initial value : %d'),
   R.add(5),
-  L.traceT('add call'),
-  L.trace,
+  L.debug('Add value : %d'),
   R.multiply(4),
-  L.traceT(`multiply call`),
-  L.trace,
-  L.infoT('process done'),
-  info
+  L.debug('Multiply value : %d'),
+  R.objOf('data'),
+  L.info('Final Object : %o')
 );
 
-L.info('process start');
 main(2);
+```
+
+```
+[2020-02-22 15:22:03.139 +0000] INFO  (test): Processing start
+[2020-02-22 15:22:03.142 +0000] DEBUG (test): Initial value : 2
+[2020-02-22 15:22:03.142 +0000] DEBUG (test): Add value : 7
+[2020-02-22 15:22:03.142 +0000] DEBUG (test): Multiply value : 28
+[2020-02-22 15:22:03.143 +0000] INFO  (test): Final Object : {"data":28}
+```
+
+But if you want to use the classic Pino logger, you can get it with `L.getPino()`
+
+```js
+const L = require('loggy-log')();
+const pino = L.getPino();
+const a = 1;
+const b = 2;
+const c = a + b;
+pino.info('%d + %d = %d', a, b, c);
+```
+
+```
+[2020-02-22 15:23:55.207 +0000] INFO  (test): 1 + 2 = 3
 ```
 
 ### Exposed functions
@@ -75,12 +112,6 @@ main(2);
 
 Takes a, logs it, and returns a 
 
-##### `errorT, warnT, infoT, debugT, traceT`
-
-`a -> * -> *`
-
-Takes a String and any data, logs the String and return the data
-
-##### Note about  `log` and `logT`
+##### Note about  `log`
 
 Got the same methods as before, but take another argument, placed first, which is the log level.
