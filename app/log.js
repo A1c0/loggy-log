@@ -1,62 +1,37 @@
 const R = require('ramda');
-const {winstonLogger} = require('../lib/winston-logger');
+const {getFileName} = require('./get-filename');
 
-const levelTable = ['TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'];
+const {pinoLogger} = require('../lib/pino-logger');
 
-process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'INFO';
+const isNeedArgs = R.includes('%');
 
-const ezLog = R.curry((m, l) => winstonLogger.log(l, '%o', m));
-
-const isBeforeThan = R.curry((level, x) =>
-  R.pipe(
-    R.toUpper,
-    R.of,
-    R.prepend(x),
-    R.map(R.indexOf(R.__, levelTable)),
-    R.apply(R.lte)
-  )(level)
+const getLoggerDependsOnMessage = R.curry((level, message, arg) =>
+  R.ifElse(isNeedArgs, R.flip(R.invoker(2, level))(arg), R.invoker(1, level))(
+    message
+  )
 );
 
-const isLevelOk = R.converge(isBeforeThan, [
-  R.identity,
-  R.always(process.env.LOG_LEVEL)
-]);
-
-const logIfLevelOK = (level, message, obj) =>
+const logger = R.curry((moduleName, level, message, arg) =>
   R.pipe(
-    R.when(isLevelOk, ezLog(message)),
-    R.always(obj)
-  )(level);
-
-const log = R.curry((level, message) => logIfLevelOK(level, message, message));
-
-const logT = R.curry((level, message, obj) =>
-  logIfLevelOK(level, message, obj)
+    R.curry(R.flip(R.binary(R.call)))(moduleName),
+    getLoggerDependsOnMessage(level, message, arg),
+    R.always(arg)
+  )(pinoLogger)
 );
 
-const trace = log('trace');
-const debug = log('debug');
-const info = log('info');
-const warn = log('warn');
-const error = log('error');
-
-const traceT = logT('trace');
-const debugT = logT('debug');
-const infoT = logT('info');
-const warnT = logT('warn');
-const errorT = logT('error');
-
-module.exports = {
-  log,
-  trace,
-  debug,
-  info,
-  warn,
-  error,
-  logT,
-  traceT,
-  debugT,
-  infoT,
-  warnT,
-  errorT
+const initLogger = moduleName => {
+  const data = getFileName();
+  const realModuleName = moduleName || data;
+  const logFn = logger(realModuleName);
+  return {
+    log: logFn,
+    error: logFn('error'),
+    warn: logFn('warn'),
+    info: logFn('info'),
+    debug: logFn('debug'),
+    trace: logFn('trace'),
+    getPino: () => pinoLogger(realModuleName)
+  };
 };
+
+module.exports = initLogger;
