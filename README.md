@@ -115,3 +115,38 @@ Takes a, logs it, and returns a
 ##### Note about  `log`
 
 Got the same methods as before, but take another argument, placed first, which is the log level.
+
+### Extra feature
+
+I thought than print object in log could be interesting but I found it difficult to read an object logged with "%o". So I created a new data type with "%fo". I will print out object using [json-colorizer](https://www.npmjs.com/package/json-colorizer) with option `{ pretty: true }`
+So for exemple:
+
+```js
+const R = require('ramda');
+const L = require('loggy-log')();
+
+const main = R.pipe(
+  L.info('Processing start'),
+  L.debug('Initial value : %d'),
+  R.add(5),
+  L.debug('Add value : %d'),
+  R.multiply(4),
+  L.debug('Multiply value : %d'),
+  R.objOf('data'),
+  L.info('Final Object : \n%fo')
+);
+
+main(2);
+```
+
+the result will be like that
+```shell
+[2020-03-08 16:12:46.142 +0000] INFO  (test): Processing start
+[2020-03-08 16:12:46.150 +0000] DEBUG (test): Initial value : 2
+[2020-03-08 16:12:46.150 +0000] DEBUG (test): Add value : 7
+[2020-03-08 16:12:46.151 +0000] DEBUG (test): Multiply value : 28
+[2020-03-08 16:12:46.153 +0000] INFO  (test): Final Object : 
+{
+  "data": 28
+}
+```
