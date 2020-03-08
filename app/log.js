@@ -2,6 +2,33 @@ const R = require('ramda');
 const {getFileName} = require('./get-filename');
 
 const {pinoLogger} = require('../lib/pino-logger');
+const {stringify} = require('../lib/stringlify');
+
+const upgradeArgValues = R.pipe(
+  R.over(R.lensIndex(0), R.match(/%[a-z]+/g)),
+  R.juxt([R.head, R.tail]),
+  R.transpose,
+  R.map(
+    R.pipe(
+      R.when(
+        R.propSatisfies(R.includes('%fo'), 0),
+        R.over(R.lensIndex(1), stringify)
+      ),
+      R.last
+    )
+  )
+);
+
+const upgradeArg = R.pipe(
+  R.juxt([
+    R.pipe(
+      R.head,
+      R.replace('%fo', '%s')
+    ),
+    upgradeArgValues
+  ]),
+  R.unnest
+);
 
 const isNeedArgs = R.includes('%');
 
@@ -11,9 +38,9 @@ const getLoggerDependsOnMessage = R.curry((level, message, arg) =>
   )
 );
 
-const logger = R.curry((moduleName, level, message, arg) =>
+const logger = R.curry((moduleName, argsFn, level, message, arg) =>
   R.pipe(
-    R.curry(R.flip(R.binary(R.call)))(moduleName),
+    R.curry(R.flip(R.binary(R.apply)))([moduleName, argsFn]),
     getLoggerDependsOnMessage(level, message, arg),
     R.always(arg)
   )(pinoLogger)
@@ -22,7 +49,7 @@ const logger = R.curry((moduleName, level, message, arg) =>
 const initLogger = moduleName => {
   const data = getFileName();
   const realModuleName = moduleName || data;
-  const logFn = logger(realModuleName);
+  const logFn = logger(realModuleName, upgradeArg);
   return {
     log: logFn,
     error: logFn('error'),
@@ -30,7 +57,7 @@ const initLogger = moduleName => {
     info: logFn('info'),
     debug: logFn('debug'),
     trace: logFn('trace'),
-    getPino: () => pinoLogger(realModuleName)
+    getPino: () => pinoLogger(realModuleName, upgradeArg)
   };
 };
 
