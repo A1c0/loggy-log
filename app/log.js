@@ -46,9 +46,13 @@ const logger = R.curry((moduleName, argsFn, level, message, arg) =>
   )(pinoLogger)
 );
 
-const initLogger = moduleName => {
-  const data = getFileName();
-  const realModuleName = moduleName || data;
+const getRealModuleName = R.cond([
+  [R.is(String), R.identity],
+  [R.T, getFileName]
+]);
+
+const initLogger = module => {
+  const realModuleName = getRealModuleName(module);
   const logFn = logger(realModuleName, upgradeArg);
   return {
     log: logFn,
