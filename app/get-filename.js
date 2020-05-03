@@ -12,8 +12,7 @@ const isInternalPath = R.anyPass([
 const getTrace = R.pipe(
   R.invoker(0, 'get'),
   R.map(getFileNameMethod),
-  R.reject(isInternalPath),
-  R.drop(2)
+  R.reject(isInternalPath)
 );
 
 const getFileName = (stackLevel = 0) => {
