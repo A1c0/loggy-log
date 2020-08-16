@@ -18,7 +18,7 @@ const getTrace = R.pipe(
 const getFileName = (stackLevel = 0) => {
   const trace = getTrace(stackTrace);
   const fullPath = trace[stackLevel] || 'undefined';
-  return path.basename(fullPath).replace(/(?:\.)(?:.*)/gm, '');
+  return path.basename(fullPath).replace(/\..*/gm, '');
 };
 
 module.exports = {getFileName};

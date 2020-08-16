@@ -19,23 +19,19 @@ const upgradeArgValues = R.pipe(
   )
 );
 
-const upgradeArg = R.pipe(
-  R.juxt([
-    R.pipe(
-      R.head,
-      R.replace('%fo', '%s')
-    ),
-    upgradeArgValues
-  ]),
+const upgradeArgs = R.pipe(
+  R.juxt([R.pipe(R.head, R.replace('%fo', '%s')), upgradeArgValues]),
   R.unnest
 );
 
 const isNeedArgs = R.includes('%');
 
 const getLoggerDependsOnMessage = R.curry((level, message, arg) =>
-  R.ifElse(isNeedArgs, R.flip(R.invoker(2, level))(arg), R.invoker(1, level))(
-    message
-  )
+  R.ifElse(
+    isNeedArgs,
+    R.flip(R.invoker(2, level))(arg),
+    R.invoker(1, level)
+  )(message)
 );
 
 const logger = R.curry((moduleName, argsFn, level, message, arg) =>
@@ -51,9 +47,16 @@ const getRealModuleName = R.cond([
   [R.T, getFileName]
 ]);
 
+const isUpgradeArgsNecessary = R.allPass([
+  R.propSatisfies(R.is(String), 0),
+  R.propSatisfies(R.includes('%fo'), 0)
+]);
+
+const upgradeArgsWhenNecessary = R.when(isUpgradeArgsNecessary, upgradeArgs);
+
 const initLogger = module => {
   const realModuleName = getRealModuleName(module);
-  const logFn = logger(realModuleName, upgradeArg);
+  const logFn = logger(realModuleName, upgradeArgsWhenNecessary);
   return {
     log: logFn,
     error: logFn('error'),
@@ -61,7 +64,7 @@ const initLogger = module => {
     info: logFn('info'),
     debug: logFn('debug'),
     trace: logFn('trace'),
-    getPino: () => pinoLogger(realModuleName, upgradeArg)
+    getPino: () => pinoLogger(realModuleName, upgradeArgsWhenNecessary)
   };
 };
 

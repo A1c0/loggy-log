@@ -1,6 +1,6 @@
 {
   "name": "loggy-log",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "A little logger which depends on environ variable",
   "main": "app/log.js",
   "author": "Alexandre CONTASSOT <alexandre.contassot@thechatbotfactory.com>",
@@ -36,15 +36,20 @@
   },
   "devDependencies": {
     "dotenv": "^8.0.0",
+    "eslint-plugin-prettier": "^3.1.4",
     "pre-commit": "^1.2.2",
-    "xo": "^0.26.1"
+    "prettier": "^2.0.5",
+    "xo": "^0.33.0"
   },
   "xo": {
     "envs": [
       "mocha"
     ],
     "space": 2,
-    "prettier": true
+    "prettier": true,
+    "rule": {
+      "unicorn/no-fn-reference-in-iterator": 0
+    }
   },
   "pre-commit": [
     "code-style"
